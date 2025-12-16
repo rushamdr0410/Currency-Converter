@@ -38,4 +38,9 @@ public class currencyController {
         currencies.add(new Currency(code, name, symbol));
         return "Currency" + code + "added successfully!";
     }
+
+    @GetMapping("/json-test")
+    public Currency getJsonExample(){
+        return new Currency("CAD","Canadian Dollar","C$");
+    }
 }
