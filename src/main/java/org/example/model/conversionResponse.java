@@ -27,10 +27,14 @@ public class conversionResponse {
 
     public String getFromCurrency(){return fromCurrency;}
     public void setFromCurrency(String fromCurrency){this.fromCurrency=fromCurrency;}
+    public String getToCurrency(){return toCurrency;}
+    public void setToCurrency(String toCurrency){this.toCurrency=toCurrency;}
     public double getAmount(){return amount;}
     public void setAmount(double amount){this.amount=amount;}
     public double getConvertAmount(){return convertedAmount;}
     public void setConvertedAmount(double convertedAmount){this.exchangeRate=exchangeRate;}
+    public double getExchangeRate(){return exchangeRate;}
+    public void setExchangeRate(double exchangeRate){this.exchangeRate=exchangeRate;}
     public LocalDateTime getTimestamp(){return timestamp;}
     public void setTimestamp(LocalDateTime timestamp){this.timestamp=timestamp;}
     public String getMessage(){return message;}
