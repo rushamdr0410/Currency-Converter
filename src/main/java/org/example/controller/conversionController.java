@@ -6,6 +6,8 @@ import org.hibernate.query.sqm.tree.expression.Conversion;
 import org.springframework.beans.factory.annotation.Autowire;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.example.service.ExchangeRateService;
+import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.List;
@@ -14,9 +16,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/convert")
 public class conversionController {
+
     private Map<String,Double>exchangeRates=new HashMap<>();
     @Autowired
     private conversionHistoryRepository historyRepository;
+    @Autowired
+    private ExchangeRateService exchangeRateService;
 
     public conversionController(){
         initializeRates();
@@ -32,21 +37,27 @@ public class conversionController {
     }
 
     @GetMapping("/simple")
-    public conversionResponse convertSimple(@RequestParam String from, @RequestParam String to, @RequestParam double amount){
-        conversionResponse repsonse= performConversion(from, to, amount);
-        if(repsonse.getMessage().equals("Conversion successful")){
-            saveConversionHistory(repsonse);
-        }
-        return repsonse;
+    public Mono<conversionResponse> convertSimple(@RequestParam String from, @RequestParam String to, @RequestParam double amount){
+        return exchangeRateService.getExchangeRate(from.toUpperCase(), to.toUpperCase()).map(rate->{
+            double convertedAmount = amount *rate;
+            conversionResponse response= new conversionResponse(from.toUpperCase(), to.toUpperCase(), amount, convertedAmount, rate);
+            saveConversionHistory(response);
+            return response;
+        }).onErrorReturn(createErrorResponse("Conversion failed"));
     }
 
     @PostMapping
-    public conversionResponse convert(@RequestBody conversionRequest request){
-       conversionResponse response=performConversion(request.getFromCurrency(), request.getToCurrency(), request.getAmount());
-       if(response.getMessage().equals("Conversion successful")){
-           saveConversionHistory(response);
-       }
-       return response;
+    public Mono<conversionResponse> convert(@RequestBody conversionRequest request){
+        return exchangeRateService.getExchangeRate(request.getFromCurrency().toUpperCase(),request.getToCurrency().toUpperCase()).map(rate ->{
+            double convertedAmount=request.getAmount()*rate;
+
+            conversionResponse response=new conversionResponse(request.getFromCurrency().toUpperCase(), request.getToCurrency().toUpperCase(), request.getAmount(),convertedAmount,rate);
+
+            saveConversionHistory(response);
+
+            return response;
+        }).onErrorReturn(createErrorResponse("Conversion Failed"));
+
     }
 
     @GetMapping("/history")
